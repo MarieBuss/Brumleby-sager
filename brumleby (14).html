@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Brumleby Sager" />
+<title>Brumleby – Sagsoverblik</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #B83A2A;
+  --red-light: #F5EAE8;
+  --red-mid: #D4584A;
+  --sand: #F2EDE6;
+  --sand-dark: #E8DDD3;
+  --brown: #5C3D2E;
+  --brown-light: #8B6355;
+  --text: #2A1F1A;
+  --text-secondary: #6B5650;
+  --text-tertiary: #A8958F;
+  --white: #FDFAF7;
+  --border: rgba(92,61,46,0.12);
+  --aktiv: #2A6B3C;
+  --aktiv-bg: #E8F4EC;
+  --bero: #8A6A1A;
+  --bero-bg: #F5F0E0;
+  --afsluttet: #4A5568;
+  --afsluttet-bg: #EDF0F4;
+  --radius: 12px;
+  --radius-sm: 7px;
+}
+body { font-family: 'Source Sans 3', sans-serif; background: var(--sand); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+
+/* Header */
+header {
+  background: var(--red);
+  color: white;
+  padding: 14px 20px 0;
+  position: sticky; top: 0; z-index: 50;
+}
+.header-inner { max-width: 700px; margin: 0 auto; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.brand { }
+.brand-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
+.brand-sub { font-size: 12px; opacity: 0.75; margin-top: 1px; letter-spacing: 0.5px; text-transform: uppercase; }
+.new-btn { background: white; color: var(--red); border: none; border-radius: var(--radius-sm); padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Source Sans 3', sans-serif; white-space: nowrap; -webkit-tap-highlight-color: transparent; margin-top: 2px; }
+.new-btn:hover { background: var(--sand); }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: none; }
+.tab { padding: 10px 18px 12px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; color: rgba(255,255,255,0.65); transition: all 0.15s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+.tab.active { color: white; border-bottom-color: white; }
+
+/* Sync */
+.sync-bar { background: var(--sand-dark); padding: 6px 20px; font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--aktiv); flex-shrink: 0; }
+.sync-dot.loading { background: var(--bero); animation: pulse 1s infinite; }
+.sync-dot.error { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+main { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+.filter-chip { font-size: 12px; padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border); background: var(--white); color: var(--text-secondary); cursor: pointer; font-family: 'Source Sans 3', sans-serif; -webkit-tap-highlight-color: transparent; }
+.filter-chip.active { background: var(--red); color: white; border-color: var(--red); }
+.case-count { font-size: 12px; color: var(--text-tertiary); margin-left: auto; }
+
+/* Case cards */
+.cases { display: flex; flex-direction: column; gap: 10px; }
+
+.case-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+  border-left: 4px solid transparent;
+}
+.case-card:hover { box-shadow: 0 2px 12px rgba(92,61,46,0.1); }
+.case-card.status-aktiv { border-left-color: var(--aktiv); }
+.case-card.status-bero { border-left-color: var(--bero); }
+.case-card.status-afsluttet { border-left-color: var(--afsluttet); opacity: 0.7; }
+
+.case-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.case-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 400; color: var(--text); flex: 1; line-height: 1.3; }
+.status-pill { font-size: 10px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.pill-aktiv { background: var(--aktiv-bg); color: var(--aktiv); }
+.pill-bero { background: var(--bero-bg); color: var(--bero); }
+.pill-afsluttet { background: var(--afsluttet-bg); color: var(--afsluttet); }
+
+.case-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.case-type { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--red-light); color: var(--red); font-weight: 500; }
+.case-ansvarlig { font-size: 12px; color: var(--text-secondary); }
+.case-date { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
+
+.case-latest { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.case-latest-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 3px; }
+
+.new-badge { width: 7px; height: 7px; border-radius: 50%; background: var(--red); display: inline-block; margin-left: 6px; vertical-align: middle; }
+
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-tertiary); font-size: 15px; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(42,31,26,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; padding: 20px 20px 40px; width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--text); }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-tertiary); padding: 0; line-height: 1; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Source Sans 3', sans-serif; color: var(--text); background: var(--sand); outline: none; -webkit-appearance: none; appearance: none; }
+.form-group textarea { min-height: 90px; resize: vertical; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--red); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-cancel { flex: 1; background: var(--sand); border: none; border-radius: var(--radius-sm); padding: 13px; cursor: pointer; font-size: 15px; color: var(--text-secondary); font-family: 'Source Sans 3', sans-serif; }
+.btn-save { flex: 2; background: var(--red); border: none; border-radius: var(--radius-sm); padding: 13px; cursor: pointer; font-size: 15px; font-weight: 500; color: white; font-family: 'Source Sans 3', sans-serif; }
+
+/* Detail modal */
+.detail-section { margin-bottom: 20px; }
+.detail-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 6px; }
+.detail-value { font-size: 15px; color: var(--text); line-height: 1.5; }
+.updates-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.update-item { background: var(--sand); border-radius: var(--radius-sm); padding: 12px; }
+.update-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+.update-date { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.add-update-area { margin-top: 12px; }
+.add-update-area textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'Source Sans 3', sans-serif; color: var(--text); background: var(--sand); outline: none; min-height: 70px; resize: vertical; }
+.add-update-area textarea:focus { border-color: var(--red); }
+.add-update-btn { margin-top: 8px; background: var(--red); color: white; border: none; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Source Sans 3', sans-serif; }
+.detail-actions { display: flex; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.btn-edit { flex: 1; background: var(--sand); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; cursor: pointer; font-size: 14px; color: var(--text-secondary); font-family: 'Source Sans 3', sans-serif; }
+.btn-delete { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--text-tertiary); font-family: 'Source Sans 3', sans-serif; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: white; font-size: 13px; padding: 10px 20px; border-radius: 20px; transition: transform 0.3s ease; z-index: 300; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.files-section { margin-bottom: 20px; }
+.file-upload-area { border: 1.5px dashed var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; cursor: pointer; background: var(--sand); margin-top: 8px; transition: border-color 0.15s; }
+.file-upload-area:hover { border-color: var(--red); }
+.file-upload-label { font-size: 13px; color: var(--text-secondary); cursor: pointer; display: block; }
+.file-upload-label span { color: var(--red); font-weight: 500; }
+.file-input { display: none; }
+.files-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.file-item { display: flex; align-items: center; gap: 10px; background: var(--sand); border-radius: var(--radius-sm); padding: 9px 12px; }
+.file-icon { font-size: 18px; flex-shrink: 0; }
+.file-name { font-size: 13px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-link { font-size: 12px; color: var(--red); text-decoration: none; font-weight: 500; flex-shrink: 0; }
+.file-link:hover { text-decoration: underline; }
+.file-delete { background: none; border: none; cursor: pointer; color: var(--text-tertiary); font-size: 14px; padding: 0 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="brand">
+        <img src="https://www.brumleby.dk/Files/Images/Brumleby/Logo/Brumleby_logo.png" alt="Brumleby" style="height:52px;display:block;" />
+        <div class="brand-sub" style="color:rgba(255,255,255,0.8);margin-top:4px;">Sagsoverblik</div>
+      </div>
+      <button class="new-btn" onclick="openNewModal()">+ Ny sag</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('alle')" id="tab-alle">Alle</div>
+      <div class="tab" onclick="setTab('bestyrelse')" id="tab-bestyrelse">Bestyrelse</div>
+      <div class="tab" onclick="setTab('beboer')" id="tab-beboer">Beboergrupper</div>
+      <div class="tab" onclick="setTab('ek')" id="tab-ek">EK</div>
+      <div class="tab" onclick="setTab('kab')" id="tab-kab">KAB</div>
+    </div>
+  </div>
+</header>
+
+<div class="sync-bar">
+  <div class="sync-dot loading" id="sync-dot"></div>
+  <span id="sync-label">Forbinder...</span>
+</div>
+
+<main>
+  <div class="filter-bar">
+    <button class="filter-chip active" onclick="setFilter('alle')" id="filter-alle">Alle</button>
+    <button class="filter-chip" onclick="setFilter('aktiv')" id="filter-aktiv">Aktive</button>
+    <button class="filter-chip" onclick="setFilter('bero')" id="filter-bero">Sat i bero</button>
+    <button class="filter-chip" onclick="setFilter('afsluttet')" id="filter-afsluttet">Afsluttede</button>
+    <span class="case-count" id="case-count"></span>
+  </div>
+  <div class="cases" id="cases-container">
+    <div class="empty-state">Henter sager...</div>
+  </div>
+</main>
+
+<!-- New/Edit case modal -->
+<div class="modal-bg" id="case-modal-bg" onclick="handleModalBg(event,'case-modal-bg')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="case-modal-title">Ny sag</div>
+      <button class="modal-close" onclick="closeModal('case-modal-bg')">&#10005;</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titel</label>
+      <input type="text" id="f-title" placeholder="Kort beskrivende titel" autocomplete="off" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="f-type">
+          <option value="bestyrelse">Bestyrelsessag</option>
+          <option value="beboer">Beboergruppe</option>
+          <option value="ek">Ejendomskontor (EK)</option>
+          <option value="kab">KAB</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="f-status">
+          <option value="aktiv">Aktiv</option>
+          <option value="bero">Sat i bero</option>
+          <option value="afsluttet">Afsluttet</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ansvarlig</label>
+      <input type="text" id="f-ansvarlig" placeholder="Navn på ansvarlig" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Beskrivelse</label>
+      <textarea id="f-desc" placeholder="Kort beskrivelse af sagen..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('case-modal-bg')">Annuller</button>
+      <button class="btn-save" id="case-save-btn" onclick="saveCase()">Opret sag</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-bg" id="detail-modal-bg" onclick="handleModalBg(event,'detail-modal-bg')">
+  <div class="modal" id="detail-modal-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://ejxnhdmmvrcvpmphsojv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqeG5oZG1tdnJjdnBtcGhzb2p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTk5MjksImV4cCI6MjA5MzQ5NTkyOX0.iJ_F3ZARxbhLmrYaUJCKp0aepHCz22mvCnHH9bwaOCg';
+const H = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+let cases = [];
+let updates = [];
+let currentTab = 'alle';
+let currentFilter = 'alle';
+let editingId = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot' + (state === 'ok' ? '' : state === 'error' ? ' error' : ' loading');
+  document.getElementById('sync-label').textContent = msg;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.getDate() + '. ' + ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'][d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  if (diff === 0) return 'I dag';
+  if (diff === 1) return 'I går';
+  if (diff < 7) return diff + ' dage siden';
+  return d.getDate() + '. ' + ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'][d.getMonth()];
+}
+
+async function fetchAll() {
+  setSyncStatus('loading', 'Henter...');
+  try {
+    const [casesRes, updatesRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/cases?select=*&order=created_at.desc`, { headers: H }),
+      fetch(`${SUPABASE_URL}/rest/v1/case_updates?select=*&order=created_at.desc`, { headers: H })
+    ]);
+    if (!casesRes.ok || !updatesRes.ok) throw new Error();
+    cases = await casesRes.json();
+    updates = await updatesRes.json();
+    setSyncStatus('ok', 'Opdateret');
+    renderCases();
+  } catch(e) { setSyncStatus('error', 'Netværksfejl'); }
+}
+
+const LAST_VISIT_KEY = 'brumleby_last_visit';
+let lastVisit = localStorage.getItem(LAST_VISIT_KEY) ? new Date(localStorage.getItem(LAST_VISIT_KEY)) : null;
+
+function saveLastVisit() {
+  localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
+}
+
+function isNew(caseId) {
+  if (!lastVisit) return false;
+  const latest = getLatestUpdate(caseId);
+  if (latest && new Date(latest.created_at) > lastVisit) return true;
+  const c = cases.find(x => x.id === caseId);
+  if (c && new Date(c.created_at) > lastVisit) return true;
+  return false;
+}
+
+function getLatestUpdate(caseId) {
+  return updates.filter(u => u.case_id === caseId).sort((a,b) => b.created_at.localeCompare(a.created_at))[0];
+}
+
+function getCaseUpdates(caseId) {
+  return updates.filter(u => u.case_id === caseId).sort((a,b) => b.created_at.localeCompare(a.created_at));
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  ['alle','bestyrelse','beboer','ek','kab'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  renderCases();
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  ['alle','aktiv','bero','afsluttet'].forEach(f => {
+    document.getElementById('filter-' + f).classList.toggle('active', f === filter);
+  });
+  renderCases();
+}
+
+function statusLabel(s) { return s === 'aktiv' ? 'Aktiv' : s === 'bero' ? 'Sat i bero' : 'Afsluttet'; }
+function typeLabel(t) {
+  if (t === 'bestyrelse') return 'Bestyrelse';
+  if (t === 'beboer') return 'Beboergruppe';
+  if (t === 'ek') return 'EK';
+  if (t === 'kab') return 'KAB';
+  return t;
+}
+
+function renderCases() {
+  let filtered = cases;
+  if (currentTab !== 'alle') filtered = filtered.filter(c => c.type === currentTab);
+  if (currentFilter !== 'alle') filtered = filtered.filter(c => c.status === currentFilter);
+  
+  document.getElementById('case-count').textContent = filtered.length + ' sag' + (filtered.length !== 1 ? 'er' : '');
+  
+  const container = document.getElementById('cases-container');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Ingen sager at vise</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(c => {
+    const latest = getLatestUpdate(c.id);
+    const newDot = isNew(c.id) ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:7px;vertical-align:middle;flex-shrink:0;"></span>' : '';
+    return `
+    <div class="case-card status-${c.status}" onclick="openDetail(${c.id})">
+      <div class="case-top">
+        <div class="case-title" style="display:flex;align-items:center;gap:0;">${c.title}${newDot}</div>
+        <div class="status-pill pill-${c.status}">${statusLabel(c.status)}</div>
+      </div>
+      <div class="case-meta">
+        <div class="case-type">${typeLabel(c.type)}</div>
+        <div class="case-ansvarlig">${c.ansvarlig || 'Ingen ansvarlig'}</div>
+        <div class="case-date">${fmtDateShort(c.created_at)}</div>
+      </div>
+      ${latest ? `<div class="case-latest"><div class="case-latest-label">Seneste opdatering · ${fmtDateShort(latest.created_at)}</div>${latest.text}</div>` : (c.description ? `<div class="case-latest"><div class="case-latest-label">Beskrivelse</div>${c.description}</div>` : '')}
+    </div>`;
+  }).join('');
+}
+
+function openDetail(id) {
+  const c = cases.find(x => x.id === id);
+  if (!c) return;
+  const caseUpdates = getCaseUpdates(id);
+  const modal = document.getElementById('detail-modal-content');
+  modal.innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">${c.title}</div>
+      <button class="modal-close" onclick="closeModal('detail-modal-bg')">&#10005;</button>
+    </div>
+    <div class="detail-section">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <div class="case-type">${typeLabel(c.type)}</div>
+        <div class="status-pill pill-${c.status}">${statusLabel(c.status)}</div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-left:auto;">${fmtDate(c.created_at)}</div>
+      </div>
+      ${c.ansvarlig ? `<div class="detail-label">Ansvarlig</div><div class="detail-value" style="margin-bottom:12px;">${c.ansvarlig}</div>` : ''}
+      ${c.description ? `<div class="detail-label">Beskrivelse</div><div class="detail-value">${c.description}</div>` : ''}
+    </div>
+    <div class="detail-section files-section">
+      <div class="detail-label">Filer</div>
+      <div class="files-list" id="files-list-${id}">
+        <div style="font-size:13px;color:var(--text-tertiary);">Henter filer...</div>
+      </div>
+      <div class="file-upload-area" onclick="document.getElementById('file-input-${id}').click()">
+        <label class="file-upload-label"><span>Vælg fil</span> eller træk hertil · PDF, Word, Excel</label>
+        <input class="file-input" type="file" id="file-input-${id}" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" onchange="uploadFile(${id}, this)" />
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Opdateringer</div>
+      <div class="updates-list" id="updates-list-${id}">
+        ${caseUpdates.length === 0 ? '<div style="font-size:14px;color:var(--text-tertiary);">Ingen opdateringer endnu</div>' :
+          caseUpdates.map(u => `<div class="update-item"><div class="update-text">${u.text}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;"><div class="update-date">${fmtDate(u.created_at)}</div><button onclick="deleteUpdate(${u.id},${id})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-tertiary);padding:0;">Slet</button></div></div>`).join('')}
+      </div>
+      <div class="add-update-area">
+        <textarea id="new-update-${id}" placeholder="Skriv en opdatering..."></textarea>
+        <button class="add-update-btn" onclick="addUpdate(${id})">Tilføj opdatering</button>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <button class="btn-edit" onclick="closeModal('detail-modal-bg');openEditModal(${id})">Rediger sag</button>
+      <button class="btn-delete" onclick="deleteCase(${id})">Slet</button>
+    </div>
+  `;
+  document.getElementById('detail-modal-bg').classList.add('open');
+  renderFiles(id);
+}
+
+async function addUpdate(caseId) {
+  const textarea = document.getElementById('new-update-' + caseId);
+  const text = textarea.value.trim();
+  if (!text) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/case_updates`, {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ case_id: caseId, text })
+    });
+    if (!res.ok) throw new Error();
+    const result = await res.json();
+    updates.unshift(result[0]);
+    textarea.value = '';
+    showToast('Opdatering tilføjet');
+    renderCases();
+    // Luk og genåbn detail modal så opdateringen vises
+    closeModal('detail-modal-bg');
+    setTimeout(() => openDetail(caseId), 100);
+  } catch(e) { showToast('Fejl – prøv igen'); }
+}
+
+function openNewModal() {
+  editingId = null;
+  document.getElementById('case-modal-title').textContent = 'Ny sag';
+  document.getElementById('case-save-btn').textContent = 'Opret sag';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-type').value = 'bestyrelse';
+  document.getElementById('f-status').value = 'aktiv';
+  document.getElementById('f-ansvarlig').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('case-modal-bg').classList.add('open');
+}
+
+function openEditModal(id) {
+  const c = cases.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('case-modal-title').textContent = 'Rediger sag';
+  document.getElementById('case-save-btn').textContent = 'Gem ændringer';
+  document.getElementById('f-title').value = c.title;
+  document.getElementById('f-type').value = c.type;
+  document.getElementById('f-status').value = c.status;
+  document.getElementById('f-ansvarlig').value = c.ansvarlig || '';
+  document.getElementById('f-desc').value = c.description || '';
+  document.getElementById('case-modal-bg').classList.add('open');
+}
+
+async function saveCase() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { alert('Udfyld venligst titlen'); return; }
+  const payload = {
+    title,
+    type: document.getElementById('f-type').value,
+    status: document.getElementById('f-status').value,
+    ansvarlig: document.getElementById('f-ansvarlig').value.trim(),
+    description: document.getElementById('f-desc').value.trim()
+  };
+  const btn = document.getElementById('case-save-btn');
+  btn.textContent = 'Gemmer...'; btn.disabled = true;
+  try {
+    if (editingId) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/cases?id=eq.${editingId}`, { method: 'PATCH', headers: H, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error();
+      const idx = cases.findIndex(c => c.id === editingId);
+      if (idx !== -1) cases[idx] = { ...cases[idx], ...payload };
+      showToast('Sag opdateret');
+    } else {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/cases`, { method: 'POST', headers: H, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error();
+      const result = await res.json();
+      cases.unshift(result[0]);
+      showToast('Sag oprettet');
+    }
+    closeModal('case-modal-bg');
+    renderCases();
+  } catch(e) { alert('Kunne ikke gemme – tjek forbindelsen'); }
+  finally { btn.textContent = editingId ? 'Gem ændringer' : 'Opret sag'; btn.disabled = false; }
+}
+
+async function deleteCase(id) {
+  if (!confirm('Er du sikker på at du vil slette denne sag?')) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/case_updates?case_id=eq.${id}`, { method: 'DELETE', headers: H });
+    await fetch(`${SUPABASE_URL}/rest/v1/cases?id=eq.${id}`, { method: 'DELETE', headers: H });
+    cases = cases.filter(c => c.id !== id);
+    updates = updates.filter(u => u.case_id !== id);
+    closeModal('detail-modal-bg');
+    renderCases();
+    showToast('Sag slettet');
+  } catch(e) { showToast('Fejl – prøv igen'); }
+}
+
+async function deleteUpdate(updateId, caseId) {
+  if (!confirm('Slet denne opdatering?')) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/case_updates?id=eq.${updateId}`, { method: 'DELETE', headers: H });
+    if (!res.ok) throw new Error();
+    updates = updates.filter(u => u.id !== updateId);
+    showToast('Opdatering slettet');
+    closeModal('detail-modal-bg');
+    setTimeout(() => openDetail(caseId), 100);
+    renderCases();
+  } catch(e) { showToast('Fejl – prøv igen'); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function handleModalBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+function fileIcon(name) {
+  if (name.match(/\.pdf$/i)) return '📄';
+  if (name.match(/\.docx?$/i)) return '📝';
+  if (name.match(/\.xlsx?$/i)) return '📊';
+  return '📎';
+}
+
+async function fetchFiles(caseId) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/case-files`, {
+      method: 'POST',
+      headers: { ...H, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 100, offset: 0, prefix: `${caseId}/` })
+    });
+    if (!res.ok) return [];
+    const items = await res.json();
+    // filter out folders and placeholder files
+    return items.filter(f => f.name && f.name !== '.emptyFolderPlaceholder' && f.id);
+  } catch(e) { return []; }
+}
+
+async function renderFiles(caseId) {
+  const container = document.getElementById('files-list-' + caseId);
+  if (!container) return;
+  const files = await fetchFiles(caseId);
+  if (files.length === 0) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);">Ingen filer endnu</div>';
+    return;
+  }
+  container.innerHTML = files.map(f => {
+    const url = `${SUPABASE_URL}/storage/v1/object/public/case-files/${caseId}/${f.name}`;
+    return `<div class="file-item">
+      <div class="file-icon">${fileIcon(f.name)}</div>
+      <div class="file-name">${f.name}</div>
+      <a class="file-link" href="${url}" target="_blank">Åbn</a>
+      <button class="file-delete" onclick="deleteFile(${caseId},'${f.name}')" title="Slet">&#10005;</button>
+    </div>`;
+  }).join('');
+}
+
+async function uploadFile(caseId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  showToast('Uploader...');
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9æøåÆØÅ._-]/g, '_');
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/case-files/${caseId}/${safeName}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'x-upsert': 'true' },
+      body: file
+    });
+    if (!res.ok) throw new Error();
+    showToast('Fil uploadet');
+    renderFiles(caseId);
+  } catch(e) { showToast('Fejl – kunne ikke uploade filen'); }
+  input.value = '';
+}
+
+async function deleteFile(caseId, fileName) {
+  if (!confirm('Slet filen ' + fileName + '?')) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/case-files/${caseId}/${fileName}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (!res.ok) throw new Error();
+    showToast('Fil slettet');
+    renderFiles(caseId);
+  } catch(e) { showToast('Fejl – kunne ikke slette filen'); }
+}
+
+fetchAll();
+setInterval(fetchAll, 30000);
+window.addEventListener('beforeunload', saveLastVisit);
+</script>
+</body>
+</html>
